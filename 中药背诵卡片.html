@@ -102,11 +102,11 @@ background-image:radial-gradient(ellipse at 20% 0%,rgba(181,69,58,.03) 0%,transp
 .q-prompt{font-size:13px;font-weight:600;color:var(--ink3);text-align:center;margin-bottom:14px;padding:8px 0;border-bottom:1px dashed var(--card-border)}
 .q-sec{margin-bottom:14px}
 .q-row{display:flex;gap:8px;align-items:center;margin-top:12px}
-.q-input{flex:1;padding:12px 16px;border-radius:var(--radius-sm);border:2px solid var(--card-border);font-size:18px;font-family:var(--font);outline:none;background:var(--bg);color:var(--ink);transition:border-color .2s;min-height:48px;-webkit-appearance:none}
+.q-input{flex:1;min-width:0;padding:12px 16px;border-radius:var(--radius-sm);border:2px solid var(--card-border);font-size:18px;font-family:var(--font);outline:none;background:var(--bg);color:var(--ink);transition:border-color .2s;min-height:48px;-webkit-appearance:none}
 .q-input:focus{border-color:var(--vermilion)}
 .q-input.ok{border-color:var(--jade);background:rgba(74,140,111,.06)}
 .q-input.no{border-color:var(--vermilion);background:rgba(181,69,58,.06)}
-.q-btn{padding:12px 20px;border-radius:var(--radius-sm);border:none;background:var(--vermilion);color:#fff;font-size:15px;font-weight:700;font-family:var(--font-ui);cursor:pointer;min-height:48px;touch-action:manipulation;transition:all .15s}
+.q-btn{flex-shrink:0;padding:12px 20px;border-radius:var(--radius-sm);border:none;background:var(--vermilion);color:#fff;font-size:15px;font-weight:700;font-family:var(--font-ui);cursor:pointer;min-height:48px;touch-action:manipulation;transition:all .15s}
 .q-btn:active{transform:scale(.96);opacity:.85}
 .q-result{margin-top:12px;padding:12px 16px;border-radius:var(--radius-sm);font-size:15px;text-align:center;font-weight:700}
 .q-result.ok{background:rgba(74,140,111,.1);color:var(--jade);border:1px solid rgba(74,140,111,.3)}
@@ -187,6 +187,7 @@ background-image:radial-gradient(ellipse at 20% 0%,rgba(181,69,58,.03) 0%,transp
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
 @media(max-height:600px)and(orientation:landscape){.app{padding-top:4px}.card-scene{min-height:170px}.card,.card-face{min-height:170px;padding:16px}.front-name{font-size:32px;margin:8px 0}.hdr h1{font-size:18px}}
+@media(max-width:420px){.q-btn{padding:12px 14px}.q-input{font-size:16px;padding:12px 12px}}
 @media(min-width:420px){.nbtn{padding:12px 20px;font-size:15px}}
 </style>
 </head>
@@ -194,10 +195,13 @@ background-image:radial-gradient(ellipse at 20% 0%,rgba(181,69,58,.03) 0%,transp
 <div class="app" id="app"></div>
 <script>
 // ============================================================
-// 本草卡片 v1.3.2 — 中药背诵学习工具
+// 本草卡片 v1.3.3 — 中药背诵学习工具
 // 适配：2026年中医执业医师资格考试 · 中药学184味
 // ============================================================
 // Changelog:
+// v1.3.3 (2026-06-15)
+//   - 修复：手机端默写输入框溢出屏幕，确认按钮被挤出可视区域
+//     根因：.q-input缺少min-width:0，flex子元素无法缩小到内容宽度以下
 // v1.3.2 (2026-06-15)
 //   - 优化：练习随机模式改为真随机（Math.random），替代原先基于ID奇偶的固定映射
 //     新增S.rtype状态字段，仅在导航（goNext/goPrev）时刷新，避免渲染抖动
