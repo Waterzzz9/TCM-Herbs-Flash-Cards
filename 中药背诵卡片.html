@@ -195,10 +195,12 @@ background-image:radial-gradient(ellipse at 20% 0%,rgba(181,69,58,.03) 0%,transp
 <div class="app" id="app"></div>
 <script>
 // ============================================================
-// 本草卡片 v1.3.3 — 中药背诵学习工具
+// 本草卡片 v1.4.0 — 中药背诵学习工具
 // 适配：2026年中医执业医师资格考试 · 中药学184味
 // ============================================================
 // Changelog:
+// v1.4.0 (2026-06-15)
+//   - 重构：抽取 resetUI() 函数，消除7处重复的状态重置逻辑
 // v1.3.3 (2026-06-15)
 //   - 修复：手机端默写输入框溢出屏幕，确认按钮被挤出可视区域
 //     根因：.q-input缺少min-width:0，flex子元素无法缩小到内容宽度以下
@@ -556,16 +558,17 @@ function R(){
   const qi=document.getElementById("qi");if(qi){qi.focus();qi.selectionStart=qi.selectionEnd=qi.value.length}
 }
 
-function goNext(){const f=filtered();S.flip=false;S.qi="";S.qr=null;S.dose=false;S.rvShow=false;S.idx=(S.idx+1)%(f.length||1);S.anim="slide-l";S.rtype=Math.random()>.5?"quiz":"reverse";R()}
-function goPrev(){const f=filtered();S.flip=false;S.qi="";S.qr=null;S.dose=false;S.rvShow=false;S.idx=(S.idx-1+(f.length||1))%(f.length||1);S.anim="slide-r";S.rtype=Math.random()>.5?"quiz":"reverse";R()}
-function markHerb(known){const h=herb();if(known){S.kn.add(h.id);S.uk.delete(h.id)}else{S.uk.add(h.id);S.kn.delete(h.id)}saveProg();recordStudy(1);S.flip=false;S.qi="";S.qr=null;S.dose=false;S.rvShow=false;const f2=filtered();if(f2.length===0){S.idx=0;R();return}if(S.idx>=f2.length)S.idx=f2.length-1;S.anim="slide-l";R()}
+function resetUI(){S.flip=false;S.qi="";S.qr=null;S.dose=false;S.rvShow=false}
+function goNext(){const f=filtered();resetUI();S.idx=(S.idx+1)%(f.length||1);S.anim="slide-l";S.rtype=Math.random()>.5?"quiz":"reverse";R()}
+function goPrev(){const f=filtered();resetUI();S.idx=(S.idx-1+(f.length||1))%(f.length||1);S.anim="slide-r";S.rtype=Math.random()>.5?"quiz":"reverse";R()}
+function markHerb(known){const h=herb();if(known){S.kn.add(h.id);S.uk.delete(h.id)}else{S.uk.add(h.id);S.kn.delete(h.id)}saveProg();recordStudy(1);resetUI();const f2=filtered();if(f2.length===0){S.idx=0;R();return}if(S.idx>=f2.length)S.idx=f2.length-1;S.anim="slide-l";R()}
 
 document.getElementById("app").addEventListener("click",e=>{
   const b=e.target.closest("[data-a]");if(!b)return;
   const act=b.dataset.a,val=b.dataset.v;
-  if(act==="mode"){S.mode=val;S.flip=false;S.qi="";S.qr=null;S.dose=false;S.rvShow=false;if(val==="practice"){if(!scopeCats.includes(S.scope))S.scope="全部";S.idx=0}else if(val==="browse"){if(!cats.includes(S.scope))S.scope="全部";S.idx=0}else{S.idx=0}R()}
-  else if(act==="scope"){S.scope=val;S.idx=0;S.flip=false;S.qi="";S.qr=null;S.dose=false;S.rvShow=false;R()}
-  else if(act==="sub"){S.sub=val;S.qi="";S.qr=null;S.dose=false;S.rvShow=false;R()}
+  if(act==="mode"){S.mode=val;resetUI();if(val==="practice"){if(!scopeCats.includes(S.scope))S.scope="全部";S.idx=0}else if(val==="browse"){if(!cats.includes(S.scope))S.scope="全部";S.idx=0}else{S.idx=0}R()}
+  else if(act==="scope"){S.scope=val;S.idx=0;resetUI();R()}
+  else if(act==="sub"){S.sub=val;resetUI();R()}
   else if(act==="flip"){S.flip=!S.flip;R()}
   else if(act==="next")goNext();
   else if(act==="prev")goPrev();
@@ -578,7 +581,7 @@ document.getElementById("app").addEventListener("click",e=>{
   else if(act==="dose"){S.dose=!S.dose;R()}
   else if(act==="export"){const blob=new Blob([JSON.stringify(P,null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="本草进度_"+today()+".json";a.click();URL.revokeObjectURL(url)}
   else if(act==="import"){document.getElementById("file-in").click()}
-  else if(act==="reset"){if(confirm("确定要重置所有学习进度吗？")){P={kn:[],uk:[],days:{},streak:0,last:null};saveProg();S.kn=new Set;S.uk=new Set;S.idx=0;S.flip=false;S.qi="";S.qr=null;S.dose=false;S.rvShow=false;R()}}
+  else if(act==="reset"){if(confirm("确定要重置所有学习进度吗？")){P={kn:[],uk:[],days:{},streak:0,last:null};saveProg();S.kn=new Set;S.uk=new Set;S.idx=0;resetUI();R()}}
 });
 document.getElementById("app").addEventListener("input",e=>{if(e.target.id==="qi"){S.qi=e.target.value;S.qr=null}});
 document.getElementById("app").addEventListener("keydown",e=>{
