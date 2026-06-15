@@ -194,10 +194,13 @@ background-image:radial-gradient(ellipse at 20% 0%,rgba(181,69,58,.03) 0%,transp
 <div class="app" id="app"></div>
 <script>
 // ============================================================
-// 本草卡片 v1.3.0 — 中药背诵学习工具
+// 本草卡片 v1.3.1 — 中药背诵学习工具
 // 适配：2026年中医执业医师资格考试 · 中药学184味
 // ============================================================
 // Changelog:
+// v1.3.1 (2026-06-15)
+//   - 修复：重置进度后界面状态未同步清空，导致卡片停留在原位
+//     根因：reset处理仅重置S.kn/S.uk，未重置S.idx/S.flip等UI状态
 // v1.3.0 (2026-06-15)
 //   - 修复：浏览模式"不熟"/"掌握"按钮点击后不跳转下一张卡片
 //     根因：markHerb()仅更新状态未调用goNext()，导致卡片原地刷新
@@ -567,7 +570,7 @@ document.getElementById("app").addEventListener("click",e=>{
   else if(act==="dose"){S.dose=!S.dose;R()}
   else if(act==="export"){const blob=new Blob([JSON.stringify(P,null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="本草进度_"+today()+".json";a.click();URL.revokeObjectURL(url)}
   else if(act==="import"){document.getElementById("file-in").click()}
-  else if(act==="reset"){if(confirm("确定要重置所有学习进度吗？")){P={kn:[],uk:[],days:{},streak:0,last:null};saveProg();S.kn=new Set;S.uk=new Set;R()}}
+  else if(act==="reset"){if(confirm("确定要重置所有学习进度吗？")){P={kn:[],uk:[],days:{},streak:0,last:null};saveProg();S.kn=new Set;S.uk=new Set;S.idx=0;S.flip=false;S.qi="";S.qr=null;S.dose=false;S.rvShow=false;R()}}
 });
 document.getElementById("app").addEventListener("input",e=>{if(e.target.id==="qi"){S.qi=e.target.value;S.qr=null}});
 document.getElementById("app").addEventListener("keydown",e=>{
