@@ -195,10 +195,13 @@ background-image:radial-gradient(ellipse at 20% 0%,rgba(181,69,58,.03) 0%,transp
 <div class="app" id="app"></div>
 <script>
 // ============================================================
-// 本草卡片 v1.4.1 — 中药背诵学习工具
+// 本草卡片 v1.4.2 — 中药背诵学习工具
 // 适配：2026年中医执业医师资格考试 · 中药学184味
 // ============================================================
 // Changelog:
+// v1.4.2 (2026-06-15)
+//   - 新增：随机模式下卡片顺序打乱（Fisher-Yates洗牌算法）
+//     切换子模式或范围时重新洗牌，题型仍独立随机决定
 // v1.4.1 (2026-06-15)
 //   - 修复：重置进度后刷新页面数据恢复（关键Bug）
 //     根因：saveProg()从S读取kn/uk覆盖P，而S.kn/S.uk在saveProg之后才被清空
@@ -442,7 +445,8 @@ let S={
   kn:new Set(P.kn), uk:new Set(P.uk),
   qi:"", qr:null, dose:false,
   rvShow:false, anim:"",
-  rtype:Math.random()>.5?"quiz":"reverse" // 随机模式的题型（导航时刷新）
+  rtype:Math.random()>.5?"quiz":"reverse", // 随机模式的题型（导航时刷新）
+  shuffled:null // 随机模式的打乱索引数组
 };
 
 function filtered(){
@@ -450,7 +454,7 @@ function filtered(){
   if(S.scope==="全部") return D;
   return D.filter(h=>h.cat===S.scope);
 }
-function herb(){const f=filtered();return f.length?f[S.idx%f.length]:D[0]}
+function herb(){if(S.sub==="random"&&S.shuffled&&S.shuffled.length){const f=filtered();return f[S.shuffled[S.idx%S.shuffled.length]]||D[0]}const f=filtered();return f.length?f[S.idx%f.length]:D[0]}
 function qType(h){return S.sub==="random"?S.rtype:S.sub}
 function stats(cat){
   const f=cat?D.filter(h=>h.cat===cat):D,t=f.length;
@@ -564,16 +568,17 @@ function R(){
 }
 
 function resetUI(){S.flip=false;S.qi="";S.qr=null;S.dose=false;S.rvShow=false}
+function shuffle(){const f=filtered();const a=Array.from({length:f.length},(_,i)=>i);for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}S.shuffled=a}
 function goNext(){const f=filtered();resetUI();S.idx=(S.idx+1)%(f.length||1);S.anim="slide-l";S.rtype=Math.random()>.5?"quiz":"reverse";R()}
 function goPrev(){const f=filtered();resetUI();S.idx=(S.idx-1+(f.length||1))%(f.length||1);S.anim="slide-r";S.rtype=Math.random()>.5?"quiz":"reverse";R()}
-function markHerb(known){const h=herb();if(known){S.kn.add(h.id);S.uk.delete(h.id)}else{S.uk.add(h.id);S.kn.delete(h.id)}saveProg();recordStudy(1);resetUI();const f2=filtered();if(f2.length===0){S.idx=0;R();return}if(S.idx>=f2.length)S.idx=f2.length-1;S.anim="slide-l";R()}
+function markHerb(known){const h=herb();if(known){S.kn.add(h.id);S.uk.delete(h.id)}else{S.uk.add(h.id);S.kn.delete(h.id)}saveProg();recordStudy(1);resetUI();if(S.sub==="random")shuffle();const f2=filtered();if(f2.length===0){S.idx=0;R();return}if(S.idx>=f2.length)S.idx=f2.length-1;S.anim="slide-l";R()}
 
 document.getElementById("app").addEventListener("click",e=>{
   const b=e.target.closest("[data-a]");if(!b)return;
   const act=b.dataset.a,val=b.dataset.v;
-  if(act==="mode"){S.mode=val;resetUI();if(val==="practice"){if(!scopeCats.includes(S.scope))S.scope="全部";S.idx=0}else if(val==="browse"){if(!cats.includes(S.scope))S.scope="全部";S.idx=0}else{S.idx=0}R()}
-  else if(act==="scope"){S.scope=val;S.idx=0;resetUI();R()}
-  else if(act==="sub"){S.sub=val;resetUI();R()}
+  if(act==="mode"){S.mode=val;resetUI();if(val==="practice"){if(!scopeCats.includes(S.scope))S.scope="全部";S.idx=0;if(S.sub==="random")shuffle()}else if(val==="browse"){if(!cats.includes(S.scope))S.scope="全部";S.idx=0}else{S.idx=0}R()}
+  else if(act==="scope"){S.scope=val;S.idx=0;resetUI();if(S.sub==="random")shuffle();R()}
+  else if(act==="sub"){S.sub=val;resetUI();if(val==="random")shuffle();R()}
   else if(act==="flip"){S.flip=!S.flip;R()}
   else if(act==="next")goNext();
   else if(act==="prev")goPrev();
